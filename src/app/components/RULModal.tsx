@@ -39,7 +39,7 @@ export function RULModal({ open, onClose }: Props) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(5,9,26,0.85)', backdropFilter: 'blur(4px)' }} />
-      <div style={{ position: 'relative', width: 720, maxWidth: '95vw', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28, zIndex: 1, boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+      <div style={{ position: 'relative', width: 720, maxWidth: '95vw', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28, zIndex: 1, boxShadow: '0 24px 80px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto',}}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>

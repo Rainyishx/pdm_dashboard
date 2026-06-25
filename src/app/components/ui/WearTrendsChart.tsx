@@ -15,19 +15,19 @@ const C = {
 };
 
 const RUN_CONFIGS = [
-  { id: 1,  failureTime: 651,  color: '#60a5fa', strokeDasharray: undefined },
-  { id: 2,  failureTime: 1102, color: '#22d3ee', strokeDasharray: '6 3' },
-  { id: 3,  failureTime: 1102, color: '#34d399', strokeDasharray: undefined },
-  { id: 4,  failureTime: 1102, color: '#4ade80', strokeDasharray: '4 4' },
-  { id: 5,  failureTime: 1332, color: '#a3e635', strokeDasharray: undefined },
-  { id: 6,  failureTime: 1352, color: '#facc15', strokeDasharray: '6 3' },
-  { id: 7,  failureTime: 1552, color: '#fbbf24', strokeDasharray: undefined },
-  { id: 8,  failureTime: 1552, color: '#fb923c', strokeDasharray: '4 4' },
-  { id: 9,  failureTime: 1552, color: '#f97316', strokeDasharray: '8 4' },
-  { id: 10, failureTime: 1552, color: '#ef9a4a', strokeDasharray: undefined },
+  { id: 1,  failureTime: 80,  color: '#60a5fa', strokeDasharray: undefined },
+  { id: 2,  failureTime: 11, color: '#22d3ee', strokeDasharray: '6 3' },
+  { id: 3,  failureTime: 20, color: '#34d399', strokeDasharray: undefined },
+  { id: 4,  failureTime: 25, color: '#4ade80', strokeDasharray: '4 4' },
+  { id: 5,  failureTime: 25, color: '#a3e635', strokeDasharray: undefined },
+  { id: 6,  failureTime: 26, color: '#facc15', strokeDasharray: '6 3' },
+  { id: 7,  failureTime: 28, color: '#fbbf24', strokeDasharray: undefined },
+  { id: 8,  failureTime: 6, color: '#fb923c', strokeDasharray: '4 4' },
+  { id: 9,  failureTime: 12, color: '#f97316', strokeDasharray: '8 4' },
+  { id: 10, failureTime: 48, color: '#ef9a4a', strokeDasharray: undefined },
 ];
 
-const MTTF = 1205;
+const MTTF = 28;
 const FAILURE_THRESHOLD = 0.8;
 
 function getWear(t: number, failureTime: number, runId: number): number | null {
