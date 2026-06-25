@@ -1,6 +1,7 @@
 import { X, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import { rulDistributionData } from './data';
+import { WearTrendsChart } from './ui/WearTrendsChart';
 
 const C = {
   bg: '#050914',
@@ -87,6 +88,8 @@ export function RULModal({ open, onClose }: Props) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+
+        <WearTrendsChart />
 
         {/* Footer note */}
         <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(59,130,246,0.06)', border: `1px solid rgba(59,130,246,0.15)` }}>
