@@ -81,9 +81,9 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
             {/* Legend row */}
             <div style={{ display: 'flex', gap: 20, marginBottom: 12, fontSize: 12, color: C.textSec }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.blue, borderRadius: 1 }} />Measured Wear</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.purple, borderRadius: 1, borderTop: `2px dashed ${C.purple}`, height: 0 }} />Predicted</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, background: C.purple, borderRadius: 1, borderTop: `2px dashed ${C.purple}`, height: 0 }} />Predicted</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.red, borderRadius: 1 }} />Failure Threshold (85%)</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.amber, borderRadius: 1, borderTop: `2px dashed ${C.amber}`, height: 0 }} />Warning Zone (70%)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, background: C.amber, borderRadius: 1, borderTop: `2px dashed ${C.amber}`, height: 0 }} />Warning Zone (70%)</span>
             </div>
 
             <div style={{ height: 300 }}>
