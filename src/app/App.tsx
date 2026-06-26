@@ -22,7 +22,12 @@ export default function App() {
     >
       <Header />
       <main style={{ padding: '24px 28px', maxWidth: 1920, margin: '0 auto' }}>
-        <MetricsSection onOpenRULDetail={() => setShowRULModal(true)} />
+        <MetricsSection onOpenRULDetail={() => setShowRULModal(true)}
+          toolConditions={[
+          { id: 't1', label: 'Tool 1 — Spindle',  value: 72, status: 'warning'  },
+          { id: 't2', label: 'Tool 2 — Drill',    value: 91, status: 'good'     },
+          { id: 't3', label: 'Tool 3 — Mill',     value: 38, status: 'critical' },
+        ]} />
         <ToolWearChart onOpenRULModal={() => setShowRULModal(true)} />
         <SensorGrid onSelectMotor={setSelectedMotor} />
       </main>
