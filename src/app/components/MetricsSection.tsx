@@ -118,7 +118,7 @@ export function MetricsSection({ onOpenRULDetail, toolConditions = DEFAULT_TOOLS
 
   return (
     <section style={{ marginBottom: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 210px 240px 200px', gap: 14, alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 210px 240px 200px', gap: 14, alignItems: 'stretch' }}>
 
         {/* ── Tool Conditions ───────────────────────────────────────── */}
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
@@ -131,6 +131,7 @@ export function MetricsSection({ onOpenRULDetail, toolConditions = DEFAULT_TOOLS
             overflowX: scrollable ? 'auto' : 'visible',
             gap: 10,
             alignItems: 'stretch',       // tiles stretch to fill card height
+            paddingBottom: 4,
           }}>
             {toolConditions.map(tool => (
               <div

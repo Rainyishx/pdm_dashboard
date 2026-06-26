@@ -118,12 +118,6 @@ export function ToolConditionGauge({
             filter={`url(#${filterId})`} />
         )}
 
-        {/* needle */}
-        {/* <line x1={nInner.x} y1={nInner.y} x2={nOuter.x} y2={nOuter.y}
-          stroke={color} strokeWidth={compact ? 2 : 2.5} strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r={compact ? 6 : 8} fill="#0c1326" stroke={color} strokeWidth={2} />
-        <circle cx={cx} cy={cy} r={compact ? 2.5 : 3.5} fill={color} /> */}
-
         {/* value & subtitle — now inside the arc */}
         <text x={cx} y={cy + valOffsetY} textAnchor="middle" fill="#e2e8f0"
           style={{ fontSize: valFontSize, fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>

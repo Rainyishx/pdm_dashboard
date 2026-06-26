@@ -34,6 +34,7 @@ export default function App() {
             wearRate: '0.008 mm/h', lastChanged: '4h ago',
             estRemaining: '60h',    runCount: 58,
           },
+          
         ]}/>
         <ToolWearChart onOpenRULModal={() => setShowRULModal(true)} />
         <SensorGrid onSelectMotor={setSelectedMotor} />
