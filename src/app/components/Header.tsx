@@ -1,5 +1,6 @@
-import { Activity, Bell, Settings, Wifi, AlertTriangle } from 'lucide-react';
+import { Settings, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import customLogo from '../../Images/images.png';
 
 const C = {
   bg: '#080e1f',
@@ -29,7 +30,7 @@ export function Header() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
             <img 
-              src="src\Images\images.png" 
+              src={customLogo}
               alt="Custom Logo" 
               style={{ 
                 width: '100%', 
@@ -44,11 +45,6 @@ export function Header() {
           </div>
         </div>
         <div style={{ width: 1, height: 32, background: C.border, margin: '0 8px' }} />
-
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 14, color: C.text, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{timeStr}</div>
-          <div style={{ fontSize: 11, color: C.textSec }}>{dateStr}</div>
-        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, color: C.textSec }}>Machine:</span>
@@ -65,6 +61,11 @@ export function Header() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: `1px solid rgba(239,68,68,0.3)` }}>
           <AlertTriangle size={13} color={C.red} />
           <span style={{ fontSize: 12, color: C.red, fontWeight: 500 }}>3 Active Alerts</span>
+        </div>
+
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 14, color: C.text, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{timeStr}</div>
+          <div style={{ fontSize: 11, color: C.textSec }}>{dateStr}</div>
         </div>
 
 
