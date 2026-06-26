@@ -4,16 +4,6 @@
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
-export interface MotorData {
-  id: string;
-  label: string;
-  value: number;
-  unit: string;
-  status: 'normal' | 'warning' | 'critical';
-  sparkline: number[];
-  baseValue: number;
-}
-
 export interface WearPoint {
   time: string;
   ts: number;
@@ -28,14 +18,6 @@ export interface AlertEntry {
   message: string;
   value: number;
   threshold: number;
-}
-
-export interface MotorStats {
-  mean: number;
-  peak: number;
-  min: number;
-  variance: number;
-  stdDev: number;
 }
 
 export type TriStatus = 'good' | 'warning' | 'critical';
@@ -68,6 +50,43 @@ export interface ToolCondition {
   status:  TriStatus;
   rul?:    ToolRUL;
   quality?: ToolQuality;
+}
+
+// ─── Raw Sensor Interfaces ────────────────────────────────────────────────────
+
+export interface WaveformPoint {
+  t: number;   // time in ms
+  v: number;   // value
+}
+
+export interface FFTPoint {
+  freq: number;  // Hz
+  mag: number;   // magnitude dB
+}
+
+export interface SensorChannel {
+  id: string;
+  label: string;
+  unit: string;
+  color: string;
+  waveform: WaveformPoint[];
+  fft: FFTPoint[];
+  rms: number;
+  peak: number;
+  dominantFreq: number;
+}
+
+export interface ToolSensorData {
+  toolId: string;
+  toolLabel: string;
+  status: TriStatus;
+  sampleRateHz: number;
+  channels: {
+    x: SensorChannel;
+    y: SensorChannel;
+    z: SensorChannel;
+    temp: SensorChannel;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,7 +131,7 @@ export const toolConditions: ToolCondition[] = [
       surfaceRoughness: { value: 0.61, unit: 'Ra μm', status: 'good' },
       shiftDelta: '+1.3% vs last shift',
     },
-  }, 
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -171,103 +190,199 @@ export const machineParams = {
   feedRate:     { value: 0.23, unit: 'mm/rev', delta: -0.01, nominal: 0.25 },
   temperature:  { value: 72.4, unit: '°C',     delta: +3.1,  nominal: 65   },
   coolantFlow:  { value: 8.7,  unit: 'L/min',  delta: -0.4,  nominal: 9.5  },
-  cuttingForce: { value: 312,  unit: 'N',      delta: +18,   nominal: 280  },
+  cuttingForce: { value: 312,  unit: 'N',       delta: +18,   nominal: 280  },
   vibration:    { value: 1.82, unit: 'mm/s',   delta: +0.21, nominal: 1.5  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6.  MOTORS  (SensorGrid)
+// 6.  RAW SENSOR DATA  (waveform + FFT per axis + temperature)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const WARNING_STATUSES  = new Set([10, 22, 37, 43, 50, 54, 60, 66, 70]);
-const CRITICAL_STATUSES = new Set([4,  28, 62]);
-
+// Deterministic pseudo-random helper
 function sr(seed: number): number {
   const x = Math.sin(seed + 1) * 10000;
   return x - Math.floor(x);
 }
 
-export const motors: MotorData[] = Array.from({ length: 72 }, (_, i) => {
-  const id   = (i + 1).toString().padStart(2, '0');
-  const seed = i * 13.7;
+// Simple DFT for computing FFT magnitudes from a real signal
+function computeFFT(signal: number[], sampleRateHz: number): FFTPoint[] {
+  const N = signal.length;
+  const freqResolution = sampleRateHz / N;
+  const result: FFTPoint[] = [];
+  const halfN = Math.floor(N / 2);
 
-  let status: 'normal' | 'warning' | 'critical';
-  let baseValue: number;
-
-  if (CRITICAL_STATUSES.has(i))     { status = 'critical'; baseValue = 4.6 + sr(seed) * 0.9; }
-  else if (WARNING_STATUSES.has(i)) { status = 'warning';  baseValue = 2.9 + sr(seed) * 1.4; }
-  else                              { status = 'normal';   baseValue = 0.4 + sr(seed) * 2.2; }
-
-  const sparkline = Array.from({ length: 60 }, (_, j) => {
-    const noise = (sr(seed + j * 0.17 + 1) - 0.5) * baseValue * 0.3;
-    const trend = status === 'critical' ? j * 0.003 : status === 'warning' ? j * 0.001 : 0;
-    return Math.max(0.05, parseFloat((baseValue + noise + trend).toFixed(3)));
-  });
-
-  return { id: `MTR-${id}`, label: `Motor ${id}`, value: parseFloat(baseValue.toFixed(2)), unit: 'mm/s', status, sparkline, baseValue };
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 7.  MOTOR DETAIL DATA  (DrillDownPanel)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export function getMotorDetailData(motor: MotorData): {
-  chartData: { time: string; value: number }[];
-  stats: MotorStats;
-  alerts: AlertEntry[];
-} {
-  const now   = Date.now();
-  const start = now - 24 * 3600 * 1000;
-  const seed  = motor.baseValue * 100;
-  const warnT = vibrationThresholds.warning;
-  const critT = vibrationThresholds.critical;
-  const threshold = motor.status === 'critical' ? critT : warnT;
-
-  const chartData = Array.from({ length: 288 }, (_, i) => {
-    const ts    = start + i * 5 * 60 * 1000;
-    const noise = (sr(seed + i * 0.23) - 0.5) * motor.baseValue * 0.35;
-    const trend = motor.status === 'critical' ? i * 0.004 : motor.status === 'warning' ? i * 0.0015 : 0;
-    const spike = sr(seed + i * 1.7) > 0.96 ? motor.baseValue * 0.4 : 0;
-    const value = Math.max(0.05, motor.baseValue + noise + trend + spike);
-    const d     = new Date(ts);
-    const time  = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-    return { time, value: parseFloat(value.toFixed(3)) };
-  });
-
-  const values   = chartData.map(d => d.value);
-  const mean     = values.reduce((a, b) => a + b, 0) / values.length;
-  const peak     = Math.max(...values);
-  const min      = Math.min(...values);
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-
-  const alerts: AlertEntry[] = [];
-  chartData.forEach((point, i) => {
-    if (point.value > threshold && sr(seed + i * 1.3) < 0.08) {
-      const d = new Date(start + i * 5 * 60 * 1000);
-      alerts.push({
-        id: `ALT-${i}`,
-        timestamp: d.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-        type: point.value > critT ? 'critical' : 'warning',
-        message: `Vibration exceeded ${point.value > critT ? 'critical' : 'warning'} threshold`,
-        value: point.value,
-        threshold,
-      });
+  for (let k = 1; k < halfN; k++) {
+    let re = 0;
+    let im = 0;
+    for (let n = 0; n < N; n++) {
+      const angle = (2 * Math.PI * k * n) / N;
+      re += signal[n] * Math.cos(angle);
+      im -= signal[n] * Math.sin(angle);
     }
-  });
+    const magnitude = Math.sqrt(re * re + im * im) / N;
+    const magDb = magnitude > 1e-10 ? 20 * Math.log10(magnitude) : -120;
+    result.push({
+      freq: parseFloat((k * freqResolution).toFixed(2)),
+      mag: parseFloat(magDb.toFixed(2)),
+    });
+  }
+  return result;
+}
+
+// Generate a realistic vibration waveform with dominant frequency components
+function generateVibrationWaveform(
+  seed: number,
+  sampleRateHz: number,
+  durationMs: number,
+  baseAmplitude: number,
+  fundamentalHz: number,
+  harmonics: number[],
+  noiseLevel: number,
+  wearFactor: number   // 0–1, higher = more harmonic distortion
+): { waveform: WaveformPoint[]; fft: FFTPoint[] } {
+  const N = Math.floor((sampleRateHz * durationMs) / 1000);
+  const dt = 1000 / sampleRateHz; // ms per sample
+  const rawSignal: number[] = [];
+
+  for (let i = 0; i < N; i++) {
+    const t = i * dt;
+    let v = 0;
+
+    // Fundamental
+    v += baseAmplitude * Math.sin(2 * Math.PI * fundamentalHz * t / 1000);
+
+    // Harmonics with wear-induced growth
+    harmonics.forEach((harmMult, hi) => {
+      const harmAmp = baseAmplitude * (0.3 + wearFactor * 0.4) / (hi + 2);
+      v += harmAmp * Math.sin(2 * Math.PI * (fundamentalHz * harmMult) * t / 1000 + sr(seed + hi) * Math.PI);
+    });
+
+    // Side-band modulation (bearing defect signature)
+    const modFreq = fundamentalHz * 0.43;
+    v += baseAmplitude * 0.15 * wearFactor * Math.sin(2 * Math.PI * modFreq * t / 1000);
+
+    // Broadband noise
+    v += (sr(seed + i * 0.37) - 0.5) * noiseLevel;
+
+    rawSignal.push(v);
+  }
+
+  const waveform: WaveformPoint[] = rawSignal.map((v, i) => ({
+    t: parseFloat((i * dt).toFixed(3)),
+    v: parseFloat(v.toFixed(4)),
+  }));
+
+  // Use a 512-point window for FFT (power of 2 for efficiency feel, pure DFT here)
+  const fftWindow = rawSignal.slice(0, Math.min(512, rawSignal.length));
+  const fft = computeFFT(fftWindow, sampleRateHz);
+
+  return { waveform, fft };
+}
+
+// Generate temperature waveform (much lower frequency, thermal drift)
+function generateTempWaveform(
+  seed: number,
+  sampleRateHz: number,
+  durationMs: number,
+  baseTemp: number,
+  wearFactor: number
+): { waveform: WaveformPoint[]; fft: FFTPoint[] } {
+  const N = Math.floor((sampleRateHz * durationMs) / 1000);
+  const dt = 1000 / sampleRateHz;
+  const rawSignal: number[] = [];
+
+  for (let i = 0; i < N; i++) {
+    const t = i * dt;
+    // Slow thermal oscillation + wear-induced rise
+    const drift = wearFactor * 8 * (i / N);
+    const thermal = 1.2 * Math.sin(2 * Math.PI * 0.8 * t / 1000);
+    const noise = (sr(seed + i * 0.19) - 0.5) * 0.4;
+    rawSignal.push(baseTemp + drift + thermal + noise);
+  }
+
+  const waveform: WaveformPoint[] = rawSignal.map((v, i) => ({
+    t: parseFloat((i * dt).toFixed(3)),
+    v: parseFloat(v.toFixed(3)),
+  }));
+
+  const fftWindow = rawSignal.slice(0, Math.min(512, rawSignal.length));
+  const fft = computeFFT(fftWindow, sampleRateHz);
+
+  return { waveform, fft };
+}
+
+function buildToolSensorData(
+  toolId: string,
+  toolLabel: string,
+  status: TriStatus,
+  seed: number,
+  spindleHz: number,         // fundamental vibration frequency
+  wearFactor: number         // 0 = new, 1 = near end of life
+): ToolSensorData {
+  const SAMPLE_RATE = 5120;  // Hz  (typical for vibration DAQ)
+  const DURATION_MS = 200;   // 200ms capture window → 1024 samples @5120Hz
+
+  const xData = generateVibrationWaveform(seed + 1,  SAMPLE_RATE, DURATION_MS, 1.8 + wearFactor * 1.4, spindleHz,      [2, 3, 4, 5], 0.25, wearFactor);
+  const yData = generateVibrationWaveform(seed + 50, SAMPLE_RATE, DURATION_MS, 1.4 + wearFactor * 1.1, spindleHz,      [2, 3, 4],    0.20, wearFactor);
+  const zData = generateVibrationWaveform(seed + 99, SAMPLE_RATE, DURATION_MS, 2.1 + wearFactor * 1.8, spindleHz * 1.5,[2, 3],       0.30, wearFactor);
+  const tData = generateTempWaveform(seed + 200, 64, DURATION_MS * 20, 68 + wearFactor * 8, wearFactor); // lower SR for temp
+
+  const rms = (data: number[]) => parseFloat(Math.sqrt(data.reduce((s, v) => s + v * v, 0) / data.length).toFixed(4));
+  const domFreq = (fft: FFTPoint[]) => fft.reduce((best, p) => p.mag > best.mag ? p : best, fft[0]).freq;
+
+  const xVals  = xData.waveform.map(p => p.v);
+  const yVals  = yData.waveform.map(p => p.v);
+  const zVals  = zData.waveform.map(p => p.v);
+  const tVals  = tData.waveform.map(p => p.v);
 
   return {
-    chartData,
-    stats: {
-      mean: parseFloat(mean.toFixed(3)), peak: parseFloat(peak.toFixed(3)),
-      min:  parseFloat(min.toFixed(3)),
-      variance: parseFloat(variance.toFixed(4)), stdDev: parseFloat(Math.sqrt(variance).toFixed(4)),
+    toolId,
+    toolLabel,
+    status,
+    sampleRateHz: SAMPLE_RATE,
+    channels: {
+      x: {
+        id: 'x', label: 'X-Axis Vibration', unit: 'mm/s', color: '#3b82f6',
+        waveform: xData.waveform, fft: xData.fft,
+        rms: rms(xVals), peak: parseFloat(Math.max(...xVals.map(Math.abs)).toFixed(4)),
+        dominantFreq: domFreq(xData.fft),
+      },
+      y: {
+        id: 'y', label: 'Y-Axis Vibration', unit: 'mm/s', color: '#a855f7',
+        waveform: yData.waveform, fft: yData.fft,
+        rms: rms(yVals), peak: parseFloat(Math.max(...yVals.map(Math.abs)).toFixed(4)),
+        dominantFreq: domFreq(yData.fft),
+      },
+      z: {
+        id: 'z', label: 'Z-Axis Vibration', unit: 'mm/s', color: '#f59e0b',
+        waveform: zData.waveform, fft: zData.fft,
+        rms: rms(zVals), peak: parseFloat(Math.max(...zVals.map(Math.abs)).toFixed(4)),
+        dominantFreq: domFreq(zData.fft),
+      },
+      temp: {
+        id: 'temp', label: 'Temperature', unit: '°C', color: '#ef4444',
+        waveform: tData.waveform, fft: tData.fft,
+        rms: rms(tVals), peak: parseFloat(Math.max(...tVals).toFixed(3)),
+        dominantFreq: domFreq(tData.fft),
+      },
     },
-    alerts: alerts.slice(0, 8),
   };
 }
 
+// Tool 301 — worn, warning state, higher wear factor
+export const tool301SensorData: ToolSensorData = buildToolSensorData(
+  't1', 'Tool 301', 'warning', 1337, 80.83, 0.62   // 4850 RPM → ~80.83 Hz
+);
+
+// Tool 502 — healthy, lower wear factor
+export const tool502SensorData: ToolSensorData = buildToolSensorData(
+  't2', 'Tool 502', 'good', 9871, 80.83, 0.18
+);
+
+export const allToolSensorData: ToolSensorData[] = [tool301SensorData, tool502SensorData];
+
 // ─────────────────────────────────────────────────────────────────────────────
-// 8.  TOOL WEAR CHART  (time-series)
+// 7.  TOOL WEAR CHART  (time-series)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const toolWearChartData: WearPoint[] = (() => {

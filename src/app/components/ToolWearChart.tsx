@@ -127,7 +127,7 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
               ))}
             </div>
 
-            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
+            {/* <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Model Confidence</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
                 <span style={{ fontSize: 24, fontWeight: 700, color: C.green }}>{modelConfidencePct}</span>
@@ -137,7 +137,7 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
                 <div style={{ height: '100%', width: `${modelConfidencePct}%`, borderRadius: 2, background: C.green }} />
               </div>
               <span style={{ fontSize: 10, color: C.textMuted }}>{modelName}</span>
-            </div>
+            </div> */}
 
             <button
               onClick={onOpenRULModal}

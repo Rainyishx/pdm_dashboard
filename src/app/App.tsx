@@ -3,12 +3,10 @@ import { Header } from './components/Header';
 import { MetricsSection } from './components/MetricsSection';
 import { ToolWearChart } from './components/ToolWearChart';
 import { SensorGrid } from './components/SensorGrid';
-import { DrillDownPanel } from './components/DrillDownPanel';
 import { RULModal } from './components/RULModal';
-import { MotorData, toolConditions } from './components/data';
+import { toolConditions } from './components/data';
 
 export default function App() {
-  const [selectedMotor, setSelectedMotor] = useState<MotorData | null>(null);
   const [showRULModal, setShowRULModal]   = useState(false);
 
   return (
@@ -25,10 +23,9 @@ export default function App() {
           toolConditions={toolConditions}
         />
         <ToolWearChart onOpenRULModal={() => setShowRULModal(true)} />
-        <SensorGrid onSelectMotor={setSelectedMotor} />
+        <SensorGrid />
       </main>
 
-      <DrillDownPanel motor={selectedMotor} onClose={() => setSelectedMotor(null)} />
       <RULModal open={showRULModal} onClose={() => setShowRULModal(false)} />
     </div>
   );
