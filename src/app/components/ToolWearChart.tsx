@@ -1,24 +1,30 @@
 import { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend } from 'recharts';
-import { toolWearChartData } from './data';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine, ReferenceArea,
+} from 'recharts';
+import { toolWearChartData, wearAnalysis } from './data';
 import { BarChart2 } from 'lucide-react';
 
 const C = {
-  card: '#0c1326',
-  panel: '#080e1f',
-  border: '#1a2d50',
-  text: '#e2e8f0',
-  textSec: '#8b9cc8',
+  card:      '#0c1326',
+  panel:     '#080e1f',
+  border:    '#1a2d50',
+  text:      '#e2e8f0',
+  textSec:   '#8b9cc8',
   textMuted: '#4a5578',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  red: '#ef4444',
-  amber: '#f59e0b',
-  purple: '#a78bfa',
+  blue:      '#3b82f6',
+  green:     '#22c55e',
+  red:       '#ef4444',
+  amber:     '#f59e0b',
+  purple:    '#a78bfa',
 };
 
-const FAIL_THRESHOLD = 85;
-const WARN_THRESHOLD = 70;
+// Destructure once so template references stay clean
+const { thresholds, currentWearPct, wearRatePerHour, etaToFailHours, modelConfidencePct, modelName } = wearAnalysis;
+const FAIL_THRESHOLD = thresholds.failure;
+const WARN_THRESHOLD = thresholds.warning;
+const toThreshold    = FAIL_THRESHOLD - currentWearPct;
 
 const thinData = toolWearChartData.filter((_, i) => i % 2 === 0);
 
@@ -26,9 +32,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const point = payload.find((p: any) => p.value !== null && p.value !== undefined);
   if (!point) return null;
-  const val = point.value as number;
+  const val      = point.value as number;
   const isActual = point.dataKey === 'actual';
-  const toFail = FAIL_THRESHOLD - val;
+  const toFail   = FAIL_THRESHOLD - val;
   return (
     <div style={{ background: '#0a1428', border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px', minWidth: 180 }}>
       <p style={{ fontSize: 11, color: C.textMuted, marginBottom: 6 }}>{label}</p>
@@ -45,16 +51,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-interface Props {
-  onOpenRULModal: () => void;
-}
+interface Props { onOpenRULModal: () => void; }
 
 export function ToolWearChart({ onOpenRULModal }: Props) {
-  const [hoveredRegion, setHoveredRegion] = useState(false);
-
-  const currentWear = 67.4;
-  const toThreshold = FAIL_THRESHOLD - currentWear;
-  const etaHours = 2.0;
+  const [, setHoveredRegion] = useState(false);
 
   return (
     <section style={{ marginBottom: 24 }}>
@@ -78,12 +78,11 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 20 }}>
           {/* Main chart */}
           <div>
-            {/* Legend row */}
             <div style={{ display: 'flex', gap: 20, marginBottom: 12, fontSize: 12, color: C.textSec }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.blue, borderRadius: 1 }} />Measured Wear</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, background: C.purple, borderRadius: 1, borderTop: `2px dashed ${C.purple}`, height: 0 }} />Predicted</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.red, borderRadius: 1 }} />Failure Threshold (85%)</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, background: C.amber, borderRadius: 1, borderTop: `2px dashed ${C.amber}`, height: 0 }} />Warning Zone (70%)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, height: 2, background: C.red, borderRadius: 1 }} />Failure Threshold ({FAIL_THRESHOLD}%)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ display: 'inline-block', width: 20, background: C.amber, borderRadius: 1, borderTop: `2px dashed ${C.amber}`, height: 0 }} />Warning Zone ({WARN_THRESHOLD}%)</span>
             </div>
 
             <div style={{ height: 300 }}>
@@ -96,55 +95,30 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis
-                    dataKey="time"
-                    tick={{ fill: C.textMuted, fontSize: 10 }}
-                    axisLine={{ stroke: C.border }}
-                    tickLine={false}
-                    interval={19}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{ fill: C.textMuted, fontSize: 10 }}
-                    axisLine={{ stroke: C.border }}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                    width={42}
-                  />
+                  <XAxis dataKey="time" tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={{ stroke: C.border }} tickLine={false} interval={19} />
+                  <YAxis domain={[0, 100]} tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={{ stroke: C.border }} tickLine={false} tickFormatter={v => `${v}%`} width={42} />
                   <Tooltip content={<CustomTooltip />} />
-
-                  {/* Warning zone reference area */}
                   <ReferenceArea y1={WARN_THRESHOLD} y2={FAIL_THRESHOLD} fill="rgba(245,158,11,0.06)" />
-                  {/* Critical zone */}
-                  <ReferenceArea y1={FAIL_THRESHOLD} y2={100} fill="rgba(239,68,68,0.06)" />
-
-                  {/* Threshold lines */}
-                  <ReferenceLine y={FAIL_THRESHOLD} stroke={C.red} strokeDasharray="6 4" strokeWidth={1.5}
-                    label={{ value: 'Fail', position: 'right', fill: C.red, fontSize: 11 }}
-                  />
-                  <ReferenceLine y={WARN_THRESHOLD} stroke={C.amber} strokeDasharray="6 4" strokeWidth={1}
-                    label={{ value: 'Warn', position: 'right', fill: C.amber, fontSize: 11 }}
-                  />
-                  <ReferenceLine x={thinData.find(d => d.actual === null)?.time} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" strokeWidth={1}
-                    label={{ value: 'Now', position: 'insideTopLeft', fill: C.textMuted, fontSize: 10, offset: 4 }}
-                  />
-
-                  <Line type="monotone" dataKey="actual" stroke="url(#blueGrad)" strokeWidth={2.5} dot={false} isAnimationActive={false} connectNulls={false} name="Measured" />
-                  <Line type="monotone" dataKey="predicted" stroke={C.purple} strokeWidth={2} strokeDasharray="6 3" dot={false} isAnimationActive={false} connectNulls={false} name="Predicted" />
+                  <ReferenceArea y1={FAIL_THRESHOLD} y2={100}           fill="rgba(239,68,68,0.06)"   />
+                  <ReferenceLine y={FAIL_THRESHOLD} stroke={C.red}   strokeDasharray="6 4" strokeWidth={1.5} label={{ value: 'Fail', position: 'right', fill: C.red,   fontSize: 11 }} />
+                  <ReferenceLine y={WARN_THRESHOLD} stroke={C.amber} strokeDasharray="6 4" strokeWidth={1}   label={{ value: 'Warn', position: 'right', fill: C.amber, fontSize: 11 }} />
+                  <ReferenceLine x={thinData.find(d => d.actual === null)?.time} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" strokeWidth={1} label={{ value: 'Now', position: 'insideTopLeft', fill: C.textMuted, fontSize: 10, offset: 4 }} />
+                  <Line type="monotone" dataKey="actual"    stroke="url(#blueGrad)" strokeWidth={2.5} dot={false} isAnimationActive={false} connectNulls={false} name="Measured"  />
+                  <Line type="monotone" dataKey="predicted" stroke={C.purple}       strokeWidth={2}   dot={false} isAnimationActive={false} connectNulls={false} name="Predicted" strokeDasharray="6 3" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Right panel: stats + RUL button */}
+          {/* Right panel */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ background: '#080e1f', border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
+            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Live Wear Metrics</div>
               {[
-                { label: 'Current Wear', value: `${currentWear}%`, color: C.blue },
-                { label: 'To Threshold', value: `${toThreshold.toFixed(1)}%`, color: C.amber },
-                { label: 'ETA to Fail', value: `~${etaHours}h`, color: C.red },
-                { label: 'Wear Rate', value: '8.0%/hr', color: C.textSec },
+                { label: 'Current Wear', value: `${currentWearPct}%`,             color: C.blue   },
+                { label: 'To Threshold', value: `${toThreshold.toFixed(1)}%`,     color: C.amber  },
+                { label: 'ETA to Fail',  value: `~${etaToFailHours}h`,            color: C.red    },
+                { label: 'Wear Rate',    value: wearRatePerHour,                   color: C.textSec},
               ].map((m, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: i < 3 ? `1px solid ${C.border}30` : 'none' }}>
                   <span style={{ fontSize: 11, color: C.textSec }}>{m.label}</span>
@@ -153,16 +127,16 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
               ))}
             </div>
 
-            <div style={{ background: '#080e1f', border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
+            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px' }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Model Confidence</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: C.green }}>91</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: C.green }}>{modelConfidencePct}</span>
                 <span style={{ fontSize: 13, color: C.textSec }}>%</span>
               </div>
               <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 6 }}>
-                <div style={{ height: '100%', width: '91%', borderRadius: 2, background: C.green }} />
+                <div style={{ height: '100%', width: `${modelConfidencePct}%`, borderRadius: 2, background: C.green }} />
               </div>
-              <span style={{ fontSize: 10, color: C.textMuted }}>XGBoost ensemble model</span>
+              <span style={{ fontSize: 10, color: C.textMuted }}>{modelName}</span>
             </div>
 
             <button

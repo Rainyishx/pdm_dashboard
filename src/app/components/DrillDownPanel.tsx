@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
 import { X, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { MotorData, getMotorDetailData, MotorStats, AlertEntry } from './data';
+import { MotorData, getMotorDetailData, MotorStats, AlertEntry, vibrationThresholds } from './data';
 
 const C = {
-  bg: '#050914',
-  card: '#0c1326',
-  panel: '#080e1f',
-  border: '#1a2d50',
-  borderLight: '#243654',
-  text: '#e2e8f0',
-  textSec: '#8b9cc8',
-  textMuted: '#4a5578',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  red: '#ef4444',
-  amber: '#f59e0b',
+  bg:         '#050914',
+  card:       '#0c1326',
+  panel:      '#080e1f',
+  border:     '#1a2d50',
+  borderLight:'#243654',
+  text:       '#e2e8f0',
+  textSec:    '#8b9cc8',
+  textMuted:  '#4a5578',
+  blue:       '#3b82f6',
+  green:      '#22c55e',
+  red:        '#ef4444',
+  amber:      '#f59e0b',
 };
 
 const STATUS_COLORS = { normal: C.green, warning: C.amber, critical: C.red };
 const STATUS_LABELS = { normal: 'NORMAL', warning: 'WARNING', critical: 'CRITICAL' };
 
-const WARN_THRESHOLD = 2.8;
-const CRIT_THRESHOLD = 4.5;
+// Thresholds now come from data.ts — edit vibrationThresholds there
+const WARN_THRESHOLD = vibrationThresholds.warning;
+const CRIT_THRESHOLD = vibrationThresholds.critical;
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -46,9 +47,9 @@ function StatBox({ label, value, sub }: StatBoxProps) {
 }
 
 function AlertRow({ alert }: { alert: AlertEntry }) {
-  const isC = alert.type === 'critical';
+  const isC   = alert.type === 'critical';
   const color = isC ? C.red : C.amber;
-  const Icon = isC ? AlertCircle : AlertTriangle;
+  const Icon  = isC ? AlertCircle : AlertTriangle;
   return (
     <div style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.border}30`, alignItems: 'flex-start' }}>
       <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: `${color}15`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
@@ -69,14 +70,11 @@ function AlertRow({ alert }: { alert: AlertEntry }) {
   );
 }
 
-interface Props {
-  motor: MotorData | null;
-  onClose: () => void;
-}
+interface Props { motor: MotorData | null; onClose: () => void; }
 
 export function DrillDownPanel({ motor, onClose }: Props) {
-  const [visible, setVisible] = useState(false);
-  const [data, setData] = useState<{ chartData: { time: string; value: number }[]; stats: MotorStats; alerts: AlertEntry[] } | null>(null);
+  const [visible, setVisible]     = useState(false);
+  const [data, setData]           = useState<{ chartData: { time: string; value: number }[]; stats: MotorStats; alerts: AlertEntry[] } | null>(null);
   const [activeTab, setActiveTab] = useState<'chart' | 'stats' | 'alerts'>('chart');
 
   useEffect(() => {
@@ -96,8 +94,7 @@ export function DrillDownPanel({ motor, onClose }: Props) {
 
   if (!motor) return null;
 
-  const color = STATUS_COLORS[motor.status];
-  const threshold = motor.status === 'critical' ? CRIT_THRESHOLD : WARN_THRESHOLD;
+  const color        = STATUS_COLORS[motor.status];
   const thinChartData = data?.chartData.filter((_, i) => i % 3 === 0) ?? [];
 
   return (
@@ -117,7 +114,7 @@ export function DrillDownPanel({ motor, onClose }: Props) {
         display: 'flex', flexDirection: 'column',
         boxShadow: '-16px 0 48px rgba(0,0,0,0.5)',
       }}>
-        {/* Panel header */}
+        {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
@@ -162,7 +159,8 @@ export function DrillDownPanel({ motor, onClose }: Props) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
-                flex: 1, padding: '12px 0', fontSize: 13, fontWeight: activeTab === tab ? 600 : 400,
+                flex: 1, padding: '12px 0', fontSize: 13,
+                fontWeight: activeTab === tab ? 600 : 400,
                 color: activeTab === tab ? C.blue : C.textSec,
                 background: 'transparent', border: 'none',
                 borderBottom: `2px solid ${activeTab === tab ? C.blue : 'transparent'}`,
@@ -175,9 +173,8 @@ export function DrillDownPanel({ motor, onClose }: Props) {
           ))}
         </div>
 
-        {/* Content area */}
+        {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-          {/* 24h Chart */}
           {activeTab === 'chart' && (
             <div>
               <div style={{ fontSize: 12, color: C.textSec, marginBottom: 14 }}>Raw sensor data — last 24 hours (5-min intervals)</div>
@@ -189,7 +186,7 @@ export function DrillDownPanel({ motor, onClose }: Props) {
                     <YAxis tick={{ fill: C.textMuted, fontSize: 10 }} axisLine={{ stroke: C.border }} tickLine={false} tickFormatter={v => `${v.toFixed(1)}`} width={40} domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
                     <ReferenceLine y={WARN_THRESHOLD} stroke={C.amber} strokeDasharray="5 4" strokeWidth={1} label={{ value: 'Warn', position: 'right', fill: C.amber, fontSize: 10 }} />
-                    <ReferenceLine y={CRIT_THRESHOLD} stroke={C.red} strokeDasharray="5 4" strokeWidth={1} label={{ value: 'Crit', position: 'right', fill: C.red, fontSize: 10 }} />
+                    <ReferenceLine y={CRIT_THRESHOLD} stroke={C.red}   strokeDasharray="5 4" strokeWidth={1} label={{ value: 'Crit', position: 'right', fill: C.red,   fontSize: 10 }} />
                     <Line type="monotone" dataKey="value" stroke={color} strokeWidth={1.8} dot={false} isAnimationActive={false} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -197,24 +194,23 @@ export function DrillDownPanel({ motor, onClose }: Props) {
             </div>
           )}
 
-          {/* Statistics */}
           {activeTab === 'stats' && data && (
             <div>
               <div style={{ fontSize: 12, color: C.textSec, marginBottom: 14 }}>Summary statistics over the last 24-hour window</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-                <StatBox label="Mean" value={`${data.stats.mean} mm/s`} sub="Time-averaged RMS" />
-                <StatBox label="Peak Value" value={`${data.stats.peak} mm/s`} sub="Maximum observed" />
-                <StatBox label="Minimum" value={`${data.stats.min} mm/s`} sub="Minimum observed" />
-                <StatBox label="Std Deviation" value={`±${data.stats.stdDev} mm/s`} sub="1σ spread" />
-                <StatBox label="Variance" value={`${data.stats.variance}`} sub="σ² (mm/s)²" />
-                <StatBox label="P-P Amplitude" value={`${(data.stats.peak - data.stats.min).toFixed(3)} mm/s`} sub="Peak-to-peak" />
+                <StatBox label="Mean"         value={`${data.stats.mean} mm/s`}                          sub="Time-averaged RMS"  />
+                <StatBox label="Peak Value"   value={`${data.stats.peak} mm/s`}                          sub="Maximum observed"   />
+                <StatBox label="Minimum"      value={`${data.stats.min} mm/s`}                           sub="Minimum observed"   />
+                <StatBox label="Std Deviation"value={`±${data.stats.stdDev} mm/s`}                       sub="1σ spread"          />
+                <StatBox label="Variance"     value={`${data.stats.variance}`}                           sub="σ² (mm/s)²"         />
+                <StatBox label="P-P Amplitude"value={`${(data.stats.peak - data.stats.min).toFixed(3)} mm/s`} sub="Peak-to-peak"  />
               </div>
               <div style={{ padding: '14px 16px', borderRadius: 10, background: '#080e1f', border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Threshold Assessment</div>
                 {[
-                  { label: 'ISO 10816-3 Class II', status: motor.value < 2.8 ? 'Pass' : 'Fail', ok: motor.value < 2.8 },
-                  { label: 'Warning Band (2.8 mm/s)', status: motor.value >= WARN_THRESHOLD ? `Exceeded by ${(motor.value - WARN_THRESHOLD).toFixed(2)}` : 'Within range', ok: motor.value < WARN_THRESHOLD },
-                  { label: 'Critical Band (4.5 mm/s)', status: motor.value >= CRIT_THRESHOLD ? `Exceeded by ${(motor.value - CRIT_THRESHOLD).toFixed(2)}` : 'Within range', ok: motor.value < CRIT_THRESHOLD },
+                  { label: 'ISO 10816-3 Class II',          status: motor.value < WARN_THRESHOLD ? 'Pass' : 'Fail',                                                              ok: motor.value < WARN_THRESHOLD },
+                  { label: `Warning Band (${WARN_THRESHOLD} mm/s)`, status: motor.value >= WARN_THRESHOLD ? `Exceeded by ${(motor.value - WARN_THRESHOLD).toFixed(2)}` : 'Within range', ok: motor.value < WARN_THRESHOLD },
+                  { label: `Critical Band (${CRIT_THRESHOLD} mm/s)`,status: motor.value >= CRIT_THRESHOLD ? `Exceeded by ${(motor.value - CRIT_THRESHOLD).toFixed(2)}` : 'Within range', ok: motor.value < CRIT_THRESHOLD },
                 ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 2 ? `1px solid ${C.border}30` : 'none' }}>
                     <span style={{ fontSize: 12, color: C.textSec }}>{item.label}</span>
@@ -225,7 +221,6 @@ export function DrillDownPanel({ motor, onClose }: Props) {
             </div>
           )}
 
-          {/* Alert History */}
           {activeTab === 'alerts' && data && (
             <div>
               <div style={{ fontSize: 12, color: C.textSec, marginBottom: 14 }}>Recent anomalies and threshold crossings — last 24 hours</div>
@@ -235,9 +230,7 @@ export function DrillDownPanel({ motor, onClose }: Props) {
                   <div style={{ fontSize: 13, color: C.textSec }}>No alerts in the last 24 hours</div>
                 </div>
               ) : (
-                <div>
-                  {data.alerts.map(alert => <AlertRow key={alert.id} alert={alert} />)}
-                </div>
+                <div>{data.alerts.map(alert => <AlertRow key={alert.id} alert={alert} />)}</div>
               )}
             </div>
           )}
