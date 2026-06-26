@@ -40,15 +40,15 @@ export function Header() {
             />
           </div>
           <div>
-            <div style={{ color: C.text, fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>Predict</div>
-            <div style={{ color: C.textSec, fontSize: 11, lineHeight: 1.2 }}>Predictive Maintenance Platform</div>
+            <div style={{ color: C.text, fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>Predictive Maintenance & Predictive Quality Monitoring</div>
+            {/* <div style={{ color: C.textSec, fontSize: 11, lineHeight: 1.2 }}>Predictive Maintenance Platform</div> */}
           </div>
         </div>
         <div style={{ width: 1, height: 32, background: C.border, margin: '0 8px' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, color: C.textSec }}>Machine:</span>
-          <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>CNC-Haas-VF4 #12</span>
+          <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>YCM NXV1020A CNC Machine</span>
         </div>
       </div>
 
