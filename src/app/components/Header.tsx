@@ -27,8 +27,16 @@ export function Header() {
     <header style={{ background: C.bg, borderBottom: `1px solid ${C.border}`, padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Activity size={18} color="#fff" />
+          <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img 
+              src="src\Images\images.png" 
+              alt="Custom Logo" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover' 
+              }} 
+            />
           </div>
           <div>
             <div style={{ color: C.text, fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>Predict</div>
@@ -36,17 +44,15 @@ export function Header() {
           </div>
         </div>
         <div style={{ width: 1, height: 32, background: C.border, margin: '0 8px' }} />
+
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 14, color: C.text, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{timeStr}</div>
+          <div style={{ fontSize: 11, color: C.textSec }}>{dateStr}</div>
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, color: C.textSec }}>Machine:</span>
           <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>CNC-Haas-VF4 #12</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: C.textSec }}>Shift:</span>
-          <span style={{ fontSize: 12, color: C.text }}>Day — 06:00–14:00</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: C.textSec }}>Job:</span>
-          <span style={{ fontSize: 12, color: C.text }}>P/N 40821-B</span>
         </div>
       </div>
 
@@ -61,21 +67,9 @@ export function Header() {
           <span style={{ fontSize: 12, color: C.red, fontWeight: 500 }}>3 Active Alerts</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Wifi size={14} color={C.green} />
-          <span style={{ fontSize: 12, color: C.textSec }}>72/72 Channels</span>
-        </div>
 
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 14, color: C.text, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{timeStr}</div>
-          <div style={{ fontSize: 11, color: C.textSec }}>{dateStr}</div>
-        </div>
 
         <div style={{ display: 'flex', gap: 4 }}>
-          <button style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <Bell size={16} color={C.textSec} />
-            <span style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: '50%', background: C.red }} />
-          </button>
           <button style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Settings size={16} color={C.textSec} />
           </button>

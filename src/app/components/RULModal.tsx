@@ -1,7 +1,7 @@
 import { X, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import { rulDistributionData, rulSummaryStats, rulToolChangeCount } from './data';
-import { WearTrendsChart } from './ui/WearTrendsChart';
+import { WearTrendsChart } from './WearTrendsChart';
 
 const C = {
   bg:       '#050914',

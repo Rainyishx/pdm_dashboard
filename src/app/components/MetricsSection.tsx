@@ -111,7 +111,7 @@ export function MetricsSection({ onOpenRULDetail, toolConditions = [] }: Props) 
 
         {/* ── Tool Conditions ───────────────────────────────────────── */}
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
-          <SectionLabel>Tool Condition{multi ? `s (${toolConditions.length})` : ''}</SectionLabel>
+          <SectionLabel>Tool Condition</SectionLabel>
           <div style={{
             flex: 1, display: 'flex',
             flexWrap: scrollable ? 'nowrap' : 'wrap',

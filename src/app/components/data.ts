@@ -56,7 +56,7 @@ export interface ToolCondition {
 export const toolConditions: ToolCondition[] = [
   {
     id: 't1',
-    label: 'Tool 1 — Spindle',
+    label: 'Tool 301',
     value: 72,
     status: 'warning',
     wearRate: '0.02 mm/h',
@@ -66,7 +66,7 @@ export const toolConditions: ToolCondition[] = [
   },
   {
     id: 't2',
-    label: 'Tool 2 — Drill',
+    label: 'Tool 502',
     value: 91,
     status: 'good',
     wearRate: '0.008 mm/h',

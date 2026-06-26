@@ -125,7 +125,7 @@ export function ToolConditionGauge({
         </text>
         <text x={cx} y={cy + subOffsetY} textAnchor="middle" fill="rgba(139,156,200,0.7)"
           style={{ fontSize: subFontSize, fontFamily: 'Inter, sans-serif' }}>
-          Tool Health Score
+          Tool Health
         </text>
       </svg>
 

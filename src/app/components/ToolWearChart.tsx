@@ -66,7 +66,7 @@ export function ToolWearChart({ onOpenRULModal }: Props) {
               <h2 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: 0 }}>Predictive Tool Wear Analysis</h2>
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', color: C.blue, background: 'rgba(59,130,246,0.12)', border: `1px solid rgba(59,130,246,0.25)`, padding: '2px 8px', borderRadius: 4 }}>LIVE</span>
             </div>
-            <p style={{ fontSize: 12, color: C.textSec, margin: 0 }}>Current Cutting vs. Failure Threshold — Taylor's Tool Life Model</p>
+            <p style={{ fontSize: 12, color: C.textSec, margin: 0 }}>Current Cutting vs. Failure Threshold</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {['1H', '6H', '12H', '24H'].map((t, i) => (
