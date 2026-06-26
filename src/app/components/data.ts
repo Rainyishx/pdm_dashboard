@@ -1,7 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // data.ts  —  single source of truth for all dashboard data
-// Edit this file to update tool conditions, motors, machine params, thresholds,
-// RUL stats, wear analysis values, and quality metrics.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
@@ -40,81 +38,109 @@ export interface MotorStats {
   stdDev: number;
 }
 
-export interface ToolCondition {
-  id: string;
-  label: string;
-  value: number;             // 0–100  (tool health %)
-  status: 'good' | 'warning' | 'critical';
-  wearRate?: string;         // e.g. "0.02 mm/h"
-  lastChanged?: string;      // e.g. "12h ago"
-  estRemaining?: string;     // e.g. "36h"
-  runCount?: number;
+export type TriStatus = 'good' | 'warning' | 'critical';
+
+export interface ToolQualityMetric {
+  value: number;
+  unit: string;
+  status: TriStatus;
 }
 
+export interface ToolRUL {
+  hoursRemaining:      number;
+  progressPct:         number;
+  maxHours:            number;
+  changeRecommendedIn: string;
+}
+
+export interface ToolQuality {
+  qopScore:         ToolQualityMetric;
+  defectRate:       ToolQualityMetric;
+  cpk:              ToolQualityMetric;
+  surfaceRoughness: ToolQualityMetric;
+  shiftDelta?:      string;
+}
+
+export interface ToolCondition {
+  id:      string;
+  label:   string;
+  value:   number;
+  status:  TriStatus;
+  rul?:    ToolRUL;
+  quality?: ToolQuality;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 1.  TOOL CONDITIONS
-//     Add / remove entries here to change the Tool Condition card.
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const toolConditions: ToolCondition[] = [
   {
-    id: 't1',
-    label: 'Tool 301',
-    value: 72,
+    id:     't1',
+    label:  'Tool 301',
+    value:  72,
     status: 'warning',
-    wearRate: '0.02 mm/h',
-    lastChanged: '12h ago',
-    estRemaining: '36h',
-    runCount: 142,
+    rul: {
+      hoursRemaining:      42,
+      progressPct:         35,
+      maxHours:            120,
+      changeRecommendedIn: '36h',
+    },
+    quality: {
+      qopScore:         { value: 94.2, unit: '%',     status: 'good'    },
+      defectRate:       { value: 1.4,  unit: '%',     status: 'good'    },
+      cpk:              { value: 1.31, unit: '',      status: 'good'    },
+      surfaceRoughness: { value: 0.82, unit: 'Ra μm', status: 'warning' },
+      shiftDelta: '+2.1% vs last shift',
+    },
   },
   {
-    id: 't2',
-    label: 'Tool 502',
-    value: 91,
+    id:     't2',
+    label:  'Tool 502',
+    value:  91,
     status: 'good',
-    wearRate: '0.008 mm/h',
-    lastChanged: '4h ago',
-    estRemaining: '60h',
-    runCount: 58,
-  },
+    rul: {
+      hoursRemaining:      78,
+      progressPct:         18,
+      maxHours:            120,
+      changeRecommendedIn: '72h',
+    },
+    quality: {
+      qopScore:         { value: 97.1, unit: '%',     status: 'good' },
+      defectRate:       { value: 0.8,  unit: '%',     status: 'good' },
+      cpk:              { value: 1.52, unit: '',      status: 'good' },
+      surfaceRoughness: { value: 0.61, unit: 'Ra μm', status: 'good' },
+      shiftDelta: '+1.3% vs last shift',
+    },
+  }, 
 ];
 
-// 2.  RUL CARD  (Remaining Useful Life summary in MetricsSection)
-export const rulCard = {
-  /** Current RUL estimate shown in large text */
-  hoursRemaining: 42,
-  /** Progress bar fill 0–100 % (distance consumed toward max life) */
-  progressPct: 35,
-  /** Maximum life used for the progress bar label */
-  maxHours: 120,
-  /** Text shown in the amber recommendation badge */
-  changeRecommendedIn: '36h',
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// 2.  VIBRATION THRESHOLDS
+// ─────────────────────────────────────────────────────────────────────────────
 
-
-// 3.  VIBRATION THRESHOLDS  (used by DrillDownPanel)
 export const vibrationThresholds = {
-  /** ISO 10816-3 warning band (mm/s) */
-  warning: 2.8,
-  /** Critical band (mm/s) */
+  warning:  2.8,
   critical: 4.5,
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 3.  TOOL WEAR ANALYSIS
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 4.  TOOL WEAR ANALYSIS  (ToolWearChart right-panel stats)
 export const wearAnalysis = {
-  /** Wear threshold lines on the chart (%) */
-  thresholds: {
-    failure: 85,
-    warning: 70,
-  },
-  /** Live metric values shown in the right panel */
-  currentWearPct: 67.4,
-  wearRatePerHour: '8.0%/hr',
-  etaToFailHours: 2.0,
-  /** Model confidence gauge */
-  modelConfidencePct: 91,
-  modelName: 'XGBoost ensemble model',
+  thresholds: { failure: 85, warning: 70 },
+  currentWearPct:      67.4,
+  wearRatePerHour:     '8.0%/hr',
+  etaToFailHours:      2.0,
+  modelConfidencePct:  91,
+  modelName:           'XGBoost ensemble model',
 };
 
-// 5.  RUL DISTRIBUTION MODAL  (histogram + summary stats)
+// ─────────────────────────────────────────────────────────────────────────────
+// 4.  RUL DISTRIBUTION MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const rulDistributionData = [
   { range: '0–5h',   count: 3  },
   { range: '5–10h',  count: 7  },
@@ -127,19 +153,19 @@ export const rulDistributionData = [
   { range: '80h+',   count: 2  },
 ];
 
-/** Summary stat cards shown above the histogram */
 export const rulSummaryStats = [
-  { label: 'Median RUL',           value: '28h',    color: '#3b82f6' as const },
-  { label: 'Std Deviation',        value: '±12.4h', color: '#8b9cc8' as const },
-  { label: 'Early Failures (<10h)',value: '10%',    color: '#f59e0b' as const },
-  { label: 'Avg Tool Life',        value: '31.2h',  color: '#22c55e' as const },
+  { label: 'Median RUL',            value: '28h',    color: '#3b82f6' as const },
+  { label: 'Std Deviation',         value: '±12.4h', color: '#8b9cc8' as const },
+  { label: 'Early Failures (<10h)', value: '10%',    color: '#f59e0b' as const },
+  { label: 'Avg Tool Life',         value: '31.2h',  color: '#22c55e' as const },
 ];
 
-/** Total tool-change events referenced in the modal subtitle */
 export const rulToolChangeCount = 89;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 5.  MACHINE PARAMETERS
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 6.  MACHINE PARAMETERS
 export const machineParams = {
   spindleSpeed: { value: 4850, unit: 'RPM',    delta: +23,   nominal: 5000 },
   feedRate:     { value: 0.23, unit: 'mm/rev', delta: -0.01, nominal: 0.25 },
@@ -149,22 +175,10 @@ export const machineParams = {
   vibration:    { value: 1.82, unit: 'mm/s',   delta: +0.21, nominal: 1.5  },
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 6.  MOTORS  (SensorGrid)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 7.  QUALITY OF PRODUCT
-export const qualityParams = {
-  qopScore:         { value: 94.2, unit: '%',      status: 'good'    as const },
-  defectRate:       { value: 1.4,  unit: '%',      status: 'good'    as const },
-  cpk:              { value: 1.31, unit: '',        status: 'good'    as const },
-  surfaceRoughness: { value: 0.82, unit: 'Ra μm',  status: 'warning' as const },
-};
-
-/** Badge shown at the bottom of the QoP card */
-export const qualityShiftDelta = '+2.1% vs last shift';
-
-
-// 8.  MOTORS  (SensorGrid)
-//     Add entries to WARNING_STATUSES / CRITICAL_STATUSES sets below, or
-//     increase the count in Array.from({ length: N }) to add more motors.
 const WARNING_STATUSES  = new Set([10, 22, 37, 43, 50, 54, 60, 66, 70]);
 const CRITICAL_STATUSES = new Set([4,  28, 62]);
 
@@ -180,13 +194,9 @@ export const motors: MotorData[] = Array.from({ length: 72 }, (_, i) => {
   let status: 'normal' | 'warning' | 'critical';
   let baseValue: number;
 
-  if (CRITICAL_STATUSES.has(i)) {
-    status = 'critical'; baseValue = 4.6 + sr(seed) * 0.9;
-  } else if (WARNING_STATUSES.has(i)) {
-    status = 'warning';  baseValue = 2.9 + sr(seed) * 1.4;
-  } else {
-    status = 'normal';   baseValue = 0.4 + sr(seed) * 2.2;
-  }
+  if (CRITICAL_STATUSES.has(i))     { status = 'critical'; baseValue = 4.6 + sr(seed) * 0.9; }
+  else if (WARNING_STATUSES.has(i)) { status = 'warning';  baseValue = 2.9 + sr(seed) * 1.4; }
+  else                              { status = 'normal';   baseValue = 0.4 + sr(seed) * 2.2; }
 
   const sparkline = Array.from({ length: 60 }, (_, j) => {
     const noise = (sr(seed + j * 0.17 + 1) - 0.5) * baseValue * 0.3;
@@ -194,19 +204,13 @@ export const motors: MotorData[] = Array.from({ length: 72 }, (_, i) => {
     return Math.max(0.05, parseFloat((baseValue + noise + trend).toFixed(3)));
   });
 
-  return {
-    id: `MTR-${id}`,
-    label: `Motor ${id}`,
-    value: parseFloat(baseValue.toFixed(2)),
-    unit: 'mm/s',
-    status,
-    sparkline,
-    baseValue,
-  };
+  return { id: `MTR-${id}`, label: `Motor ${id}`, value: parseFloat(baseValue.toFixed(2)), unit: 'mm/s', status, sparkline, baseValue };
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 7.  MOTOR DETAIL DATA  (DrillDownPanel)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 9.  MOTOR DETAIL DATA  (DrillDownPanel)
 export function getMotorDetailData(motor: MotorData): {
   chartData: { time: string; value: number }[];
   stats: MotorStats;
@@ -215,10 +219,9 @@ export function getMotorDetailData(motor: MotorData): {
   const now   = Date.now();
   const start = now - 24 * 3600 * 1000;
   const seed  = motor.baseValue * 100;
-
-  const warnThreshold = vibrationThresholds.warning;
-  const critThreshold = vibrationThresholds.critical;
-  const threshold     = motor.status === 'critical' ? critThreshold : warnThreshold;
+  const warnT = vibrationThresholds.warning;
+  const critT = vibrationThresholds.critical;
+  const threshold = motor.status === 'critical' ? critT : warnT;
 
   const chartData = Array.from({ length: 288 }, (_, i) => {
     const ts    = start + i * 5 * 60 * 1000;
@@ -236,18 +239,16 @@ export function getMotorDetailData(motor: MotorData): {
   const peak     = Math.max(...values);
   const min      = Math.min(...values);
   const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-  const stdDev   = Math.sqrt(variance);
 
   const alerts: AlertEntry[] = [];
   chartData.forEach((point, i) => {
     if (point.value > threshold && sr(seed + i * 1.3) < 0.08) {
-      const ts = start + i * 5 * 60 * 1000;
-      const d  = new Date(ts);
+      const d = new Date(start + i * 5 * 60 * 1000);
       alerts.push({
         id: `ALT-${i}`,
         timestamp: d.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-        type: point.value > critThreshold ? 'critical' : 'warning',
-        message: `Vibration exceeded ${point.value > critThreshold ? 'critical' : 'warning'} threshold`,
+        type: point.value > critT ? 'critical' : 'warning',
+        message: `Vibration exceeded ${point.value > critT ? 'critical' : 'warning'} threshold`,
         value: point.value,
         threshold,
       });
@@ -257,38 +258,38 @@ export function getMotorDetailData(motor: MotorData): {
   return {
     chartData,
     stats: {
-      mean:     parseFloat(mean.toFixed(3)),
-      peak:     parseFloat(peak.toFixed(3)),
-      min:      parseFloat(min.toFixed(3)),
-      variance: parseFloat(variance.toFixed(4)),
-      stdDev:   parseFloat(stdDev.toFixed(4)),
+      mean: parseFloat(mean.toFixed(3)), peak: parseFloat(peak.toFixed(3)),
+      min:  parseFloat(min.toFixed(3)),
+      variance: parseFloat(variance.toFixed(4)), stdDev: parseFloat(Math.sqrt(variance).toFixed(4)),
     },
     alerts: alerts.slice(0, 8),
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 8.  TOOL WEAR CHART  (time-series)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 10. TOOL WEAR CHART  (ToolWearChart time-series)
 export const toolWearChartData: WearPoint[] = (() => {
   const data: WearPoint[] = [];
   const now   = Date.now();
   const start = now - 6 * 3600 * 1000;
   const end   = now + 2 * 3600 * 1000;
-  const totalPoints = 200;
+  const N     = 200;
 
-  for (let i = 0; i < totalPoints; i++) {
-    const ts       = start + (i / (totalPoints - 1)) * (end - start);
+  for (let i = 0; i < N; i++) {
+    const ts       = start + (i / (N - 1)) * (end - start);
     const isActual = ts <= now;
     const d        = new Date(ts);
     const time     = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 
     if (isActual) {
-      const t       = (ts - start) / (6 * 3600 * 1000);
+      const t        = (ts - start) / (6 * 3600 * 1000);
       const baseWear = 20 + Math.pow(t, 1.05) * 48;
-      const noise   = Math.sin(i * 0.71) * 1.8 + Math.sin(i * 2.3) * 0.7 + (sr(i * 3.7) - 0.5) * 1.2;
+      const noise    = Math.sin(i * 0.71) * 1.8 + Math.sin(i * 2.3) * 0.7 + (sr(i * 3.7) - 0.5) * 1.2;
       data.push({ time, ts, actual: parseFloat(Math.max(0, baseWear + noise).toFixed(2)), predicted: null });
     } else {
-      const t            = (ts - now) / (2 * 3600 * 1000);
+      const t             = (ts - now) / (2 * 3600 * 1000);
       const predictedWear = wearAnalysis.currentWearPct + t * 18.2;
       data.push({ time, ts, actual: null, predicted: parseFloat(predictedWear.toFixed(2)) });
     }
@@ -297,6 +298,5 @@ export const toolWearChartData: WearPoint[] = (() => {
   const lastActualIdx = [...data].reverse().findIndex(d => d.actual !== null);
   const trueIdx       = data.length - 1 - lastActualIdx;
   if (trueIdx >= 0) data[trueIdx].predicted = data[trueIdx].actual;
-
   return data;
 })();
