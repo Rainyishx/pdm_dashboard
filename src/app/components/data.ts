@@ -132,6 +132,25 @@ export const toolConditions: ToolCondition[] = [
       shiftDelta: '+1.3% vs last shift',
     },
   },
+  // {
+  //   id:     't3',
+  //   label:  'Tool 503',
+  //   value:  15,
+  //   status: 'critical',
+  //   rul: {
+  //     hoursRemaining:      16,
+  //     progressPct:         18,
+  //     maxHours:            120,
+  //     changeRecommendedIn: '10h',
+  //   },
+  //   quality: {
+  //     qopScore:         { value: 27.1, unit: '%',     status: 'critical' },
+  //     defectRate:       { value: 0.8,  unit: '%',     status: 'good' },
+  //     cpk:              { value: 1.52, unit: '',      status: 'good' },
+  //     surfaceRoughness: { value: 0.61, unit: 'Ra μm', status: 'good' },
+  //     shiftDelta: '+1.3% vs last shift',
+  //   },
+  // },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,8 +171,8 @@ export const wearAnalysis = {
   currentWearPct:      67.4,
   wearRatePerHour:     '8.0%/hr',
   etaToFailHours:      2.0,
-  modelConfidencePct:  91,
-  modelName:           'XGBoost ensemble model',
+  // modelConfidencePct:  91,
+  // modelName:           'XGBoost ensemble model',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -378,6 +397,10 @@ export const tool301SensorData: ToolSensorData = buildToolSensorData(
 export const tool502SensorData: ToolSensorData = buildToolSensorData(
   't2', 'Tool 502', 'good', 9871, 80.83, 0.18
 );
+
+// export const tool503SensorData: ToolSensorData = buildToolSensorData(
+//   't3', 'Tool 503', 'critical', 100000, 80.83, 0.18
+// );
 
 export const allToolSensorData: ToolSensorData[] = [tool301SensorData, tool502SensorData];
 

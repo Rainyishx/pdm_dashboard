@@ -21,7 +21,7 @@ const C = {
 };
 
 // Destructure once so template references stay clean
-const { thresholds, currentWearPct, wearRatePerHour, etaToFailHours, modelConfidencePct, modelName } = wearAnalysis;
+const { thresholds, currentWearPct, wearRatePerHour, etaToFailHours} = wearAnalysis;
 const FAIL_THRESHOLD = thresholds.failure;
 const WARN_THRESHOLD = thresholds.warning;
 const toThreshold    = FAIL_THRESHOLD - currentWearPct;
