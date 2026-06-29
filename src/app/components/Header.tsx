@@ -60,7 +60,7 @@ export function Header() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: `1px solid rgba(239,68,68,0.3)` }}>
           <AlertTriangle size={13} color={C.red} />
-          <span style={{ fontSize: 12, color: C.red, fontWeight: 500 }}>3 Active Alerts</span>
+          <span style={{ fontSize: 12, color: C.red, fontWeight: 500 }}>1 Active Alerts</span>
         </div>
 
         <div style={{ textAlign: 'right' }}>
